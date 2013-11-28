@@ -1,6 +1,0 @@
-{
-  "name": "boot",
-  "dependencies": {
-    "LearnBoost/jsonp": "*"
-  }
-}

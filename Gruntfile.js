@@ -28,14 +28,30 @@ module.exports = function (grunt) {
     watchify: {
       options: {
         callback: function(b) {
-          b.transform('decomponentify')
-            .transform('debowerify');
+          var through = require('through');
+
+          b.transform(function(file) {
+              var output = '';
+              if(grunt.util._.last(file.split('.')) !== 'html')
+                return through();
+
+              return through(write, end);
+
+              function write(buf) {
+                output += buf;
+              }
+
+              function end() {
+                this.queue('module.exports = decodeURI("' + encodeURI(output) + '");');
+                this.queue(null);
+              }
+            }).transform('debowerify');
 
           return b;
         }
       },
       app: {
-        src: './client.js',
+        src: './lib/boot/index.js',
         dest: './public/js/build.js'
       }
     },
