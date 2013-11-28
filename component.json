@@ -1,0 +1,11 @@
+{
+  "name": "app",
+  "paths": [
+    "lib"
+  ],
+  "local": ["boot"],
+  "remotes": [],
+  "dependencies": {
+    "component/moment": "*"
+  }
+}
