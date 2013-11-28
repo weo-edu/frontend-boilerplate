@@ -28,7 +28,8 @@ module.exports = function (grunt) {
     watchify: {
       options: {
         callback: function(b) {
-          var through = require('through');
+          var through = require('through')
+            , debowerify = require('debowerify');
 
           b.transform(function(file) {
               var output = '';
