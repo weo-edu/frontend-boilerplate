@@ -1,4 +1,4 @@
-
+//
 /**
  * Module dependencies.
  */
@@ -10,10 +10,12 @@ var express = require('express')
   , path = require('path')
   , fs = require('fs');
 
+require('./lib/boot');
 var app = express();
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
+  //
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -23,7 +25,7 @@ app.configure(function(){
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
 });
-
+//
 app.configure('development', function(){
   app.use(express.errorHandler());
 });

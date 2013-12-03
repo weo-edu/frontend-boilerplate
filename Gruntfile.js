@@ -1,6 +1,7 @@
 'use strict';
 
-var request = require('request');
+var request = require('request')
+  , path = require('path');
 
 module.exports = function (grunt) {
   // show elapsed time at the end
@@ -32,27 +33,23 @@ module.exports = function (grunt) {
           var through = require('through');
 
           b.transform(function(file) {
-              var output = '';
-              if(grunt.util._.last(file.split('.')) !== 'html')
-                return through();
+            var output = '';
+            if(grunt.util._.last(file.split('.')) !== 'html')
+              return through();
 
-              return through(write, end);
-
-              function write(buf) {
-                output += buf;
-              }
-
-              function end() {
-                this.queue('module.exports = decodeURI("' + encodeURI(output) + '");');
-                this.queue(null);
-              }
-            }).transform('debowerify');
+            return through(function(buf) {
+              output += buf;
+            }, function() {
+              this.queue('module.exports = decodeURI("' + encodeURI(output) + '");');
+              this.queue(null);
+            });
+          }).transform('debowerify');
 
           return b;
         }
       },
       app: {
-        src: './lib/boot/index.js',
+        src: './lib/boot/main.js',
         dest: './public/js/build.js'
       }
     },
@@ -109,4 +106,39 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('default', ['watchify', 'develop', 'watch']);
+  grunt.registerTask('app', ['develop', 'watch']);
+
+  grunt.event.on('watch', function(action, filepath, target) {
+    getServerFiles(path.join(__dirname, 'app.js'), function(files) {
+      grunt.config.set('watch.server.files', files);
+    });
+  });
 };
+
+
+var browserResolve = require('browser-resolve')
+  , moduleDeps = require('module-deps')
+  , builtinLibs = require('repl')._builtinLibs;
+
+function getServerFiles(boot, cb) {
+  var files = [];
+  getServerDepStream(boot).on('data', function(file) {
+    files.push(file.id);
+  }).on('end', function() {
+    cb(files);
+  });
+}
+
+function getServerDepStream(boot) {
+  return moduleDeps(boot, {
+    resolve: function(id, parent, cb) {
+      id[0] === '.' || id[0] === '/'
+        ? browserResolve(id, parent, cb)
+        : cb(null, boot);
+    },
+    packageFilter: function(pkg) {
+      delete pkg.browser;
+      return pkg;
+    }
+  });
+}
