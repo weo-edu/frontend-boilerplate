@@ -1,0 +1,11 @@
+doctype 5
+html(xmlns:ng="http://angularjs.org")
+  head
+    title= title
+    link(rel='stylesheet', href='/build.css')
+    script.
+      SETTINGS= !{JSON.stringify(settings)}
+    script(src='http://localhost:35729/livereload.js')
+    script(src='/build.js', type='text/javascript')
+  body(test)
+    block content

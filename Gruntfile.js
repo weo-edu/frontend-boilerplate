@@ -1,15 +1,24 @@
 'use strict';
 
-var request = require('request')
-  , path = require('path');
+var path = require('path')
+  , jshint = require('jshint')
+  , fs = require('fs')
+  , _ = require('underscore')
+  , through = require('through')
+  , syntaxError = require('syntax-error');
 
 module.exports = function (grunt) {
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks
   require('load-grunt-tasks')(grunt);
+  // load all of our custom grunt tasks
+  grunt.loadTasks('grunt/');
+  require('./grunt/grunt-watchify/tasks/watchify.js')(grunt);
 
-  var reloadPort = 35729, files;
+  var reloadPort = 35729
+    , errors = []
+    , errFile = 'lib/error/err.msg';
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -18,21 +27,31 @@ module.exports = function (grunt) {
         file: 'app.js'
       }
     },
-    parallel: {
-      watchify: {
-        tasks: [{
-          grunt: true,
-          args: ['watchify']
-        }]
-      }
-    },
     watchify: {
       options: {
         debug: true,
-        callback: function(b) {
-          var through = require('through');
+         transform: [
+          function(file) {
+            if(grunt.util._.last(file.split('.')) === 'js') {
+              var err = syntaxError(fs.readFileSync(file), file);
+              if(err) {
+                if(! _.contains(errors, file))
+                  errors.push(file);
 
-          b.transform(function(file) {
+                fs.writeFileSync(errFile, err);
+                return through(function() {
+
+                }, function() {
+                  this.queue('');
+                  this.queue(null);
+                });
+              }
+            }
+
+            errors = _.without(errors, file);
+            return through();
+          },
+          function(file) {
             var output = '';
             if(grunt.util._.last(file.split('.')) !== 'html')
               return through();
@@ -43,42 +62,86 @@ module.exports = function (grunt) {
               this.queue('module.exports = decodeURI("' + encodeURI(output) + '");');
               this.queue(null);
             });
-          }).transform('debowerify');
-
-          return b;
+          },
+          'debowerify'
+        ],
+        postBundleCB: function(err, src, cb) {
+          if(errors.length === 0 && fs.existsSync(errFile))
+            fs.unlinkSync(errFile);
+          cb && cb(err, src);
         }
       },
       app: {
         src: './lib/boot/main.js',
-        dest: './public/js/build.js'
+        dest: './public/build.js'
+      }
+    },
+    sass: {
+      options: {
+        compass: true,
+        sourcemap: true
+      },
+      lib: {
+        files: {
+          'public/build.css': 'public/.imports.scss'
+        }
+      }
+    },
+    copy: {
+      lib: {
+        src: 'lib/**',
+        dest: 'public/'
+      }
+    },
+    symlink: {
+      lib: {
+        dest: path.join('node_modules', 'lib'),
+        relativeSrc: path.join('..', 'lib'),
+        options: {type: 'dir'}
+      }
+    },
+    watchDeps: {
+      server: {
+        files: [{src: __dirname + '/app.js'}], 
+        tasks: ['develop', 'delayed-livereload:' + reloadPort]
       }
     },
     watch: {
       options: {
         nospawn: true,
-        livereload: reloadPort
+        livereload: reloadPort,
+        debounceDelay: 10000
       },
-      server: {
-        files: [
-          'app.js',
-          'routes/*.js'
-        ],
-        tasks: ['develop', 'delayed-livereload']
+      packageJsons: {
+        files: ['**/package.json', '!**/node_modules/**/*', 
+          '!node_modules/**/*', '!grunt/**/*'],
+        tasks: ['develop', 'delayed-livereload:' + reloadPort]
       },
       js: {
-        files: ['public/js/build.js'],
+        files: ['public/build.js'],
         options: {
+          debounceDelay: 10000,
           livereload: reloadPort
         }
+      },
+      sass: {
+        files: ['lib/**/*.scss'],
+        tasks: ['genCssImports', 'sass']
       },
       css: {
-        files: ['public/css/*.css'],
+        files: ['public/build.css'],
         options: {
           livereload: reloadPort
         }
       },
+      images: {
+        files: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico'],
+          options: {
+            livereload: reloadPort
+          }
+      },
       jade: {
-        files: ['views/*.jade'],
+        files: ['lib/**/*.jade'],
         options: {
           livereload: reloadPort
         }
@@ -86,59 +149,7 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.config.requires('watch.server.files');
-  files = grunt.config('watch.server.files');
-  files = grunt.file.expand(files);
-
-  grunt.registerTask('delayed-livereload', 'Live reload after the node server has restarted.', function () {
-    var done = this.async();
-    setTimeout(function () {
-      request.get('http://localhost:' + reloadPort + '/changed?files=' + files.join(','),  function (err, res) {
-          var reloaded = !err && res.statusCode === 200;
-          if (reloaded) {
-            grunt.log.ok('Delayed live reload successful.');
-          } else {
-            grunt.log.error('Unable to make a delayed live reload.');
-          }
-          done(reloaded);
-        });
-    }, 500);
-  });
-
-  grunt.registerTask('default', ['watchify', 'develop', 'watch']);
-  grunt.registerTask('app', ['develop', 'watch']);
-
-  grunt.event.on('watch', function(action, filepath, target) {
-    getServerFiles(path.join(__dirname, 'app.js'), function(files) {
-      grunt.config.set('watch.server.files', files);
-    });
-  });
+  grunt.registerTask('default', ['symlink', 'build', 'watchify', 
+    'develop', 'watchDeps', 'watch']);
+  grunt.registerTask('build', ['copy', 'genCssImports', 'sass']);
 };
-
-
-var browserResolve = require('browser-resolve')
-  , moduleDeps = require('module-deps')
-  , builtinLibs = require('repl')._builtinLibs;
-
-function getServerFiles(boot, cb) {
-  var files = [];
-  getServerDepStream(boot).on('data', function(file) {
-    files.push(file.id);
-  }).on('end', function() {
-    cb(files);
-  });
-}
-
-function getServerDepStream(boot) {
-  return moduleDeps(boot, {
-    resolve: function(id, parent, cb) {
-      id[0] === '.' || id[0] === '/'
-        ? browserResolve(id, parent, cb)
-        : cb(null, boot);
-    },
-    packageFilter: function(pkg) {
-      delete pkg.browser;
-      return pkg;
-    }
-  });
-}

@@ -1,0 +1,21 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'link' ]
+2 info using npm@1.3.15
+3 info using node@v0.10.22
+4 verbose linkPkg /Users/andrewshaffer/frontend-boilerplate
+5 error Error: EACCES, symlink '/Users/andrewshaffer/frontend-boilerplate'
+5 error  { [Error: EACCES, symlink '/Users/andrewshaffer/frontend-boilerplate']
+5 error   errno: 3,
+5 error   code: 'EACCES',
+5 error   path: '/Users/andrewshaffer/frontend-boilerplate' }
+6 error Please try running this command again as root/Administrator.
+7 error System Darwin 13.0.2
+8 error command "node" "/usr/local/bin/npm" "link"
+9 error cwd /Users/andrewshaffer/frontend-boilerplate/lib
+10 error node -v v0.10.22
+11 error npm -v 1.3.15
+12 error path /Users/andrewshaffer/frontend-boilerplate
+13 error code EACCES
+14 error errno 3
+15 error stack Error: EACCES, symlink '/Users/andrewshaffer/frontend-boilerplate'
+16 verbose exit [ 3, true ]
