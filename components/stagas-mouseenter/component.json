@@ -1,0 +1,21 @@
+{
+  "name": "mouseenter",
+  "version": "0.0.2",
+  "description": "mouseenter shim utility",
+  "keywords": [
+    "mouse",
+    "mouseenter",
+    "events"
+  ],
+  "author": "stagas",
+  "licence": "MIT",
+  "dependencies": {
+    "stagas/within": "*",
+    "component/event": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "remotes": [],
+  "repo": "https://raw.github.com/stagas/mouseenter"
+}

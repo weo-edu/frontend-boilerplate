@@ -1,0 +1,13 @@
+{
+  "name": "jade-runtime",
+  "repo": "Monstercat/jade-runtime",
+  "description": "Jade runtime component",
+  "version": "0.0.2",
+  "keywords": [],
+  "dependencies": {},
+  "development": {},
+  "license": "MIT",
+  "scripts": [
+    "index.js"
+  ]
+}

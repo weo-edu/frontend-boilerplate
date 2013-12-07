@@ -1,0 +1,23 @@
+{
+  "name": "mod-player",
+  "version": "0.1.0",
+  "description": "module (.mod) player in javascript",
+  "keywords": [
+    "audio",
+    "mod",
+    "player"
+  ],
+  "author": "stagas",
+  "license": "MIT",
+  "dependencies": {
+    "component/emitter": "*"
+  },
+  "development": {
+    "stagas/audio-process": "*",
+    "stagas/mod-parser": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "repo": "https://raw.github.com/stagas/mod-player"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "bootstrap-sprites",
+  "repo": "CamShaft/bootstrap-sprites",
+  "description": "Bootstrap Sprites Component",
+  "version": "2.3.1",
+  "keywords": [],
+  "dependencies": {},
+  "development": {},
+  "license": "APLv2",
+  "images": [
+    "glyphicons-halflings.png",
+    "glyphicons-halflings-white.png"
+  ],
+  "styles": [
+    "bootstrap-sprites.css"
+  ]
+}

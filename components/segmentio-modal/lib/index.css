@@ -1,0 +1,37 @@
+
+/**
+ * Modal.
+ *
+ * .overlay.modal-overlay
+ * .modal-wrapper
+ *   .modal
+ *     .modal-close-button
+ *     [user-provided]
+ *
+ */
+
+.modal-wrapper {
+  pointer-events: none; /* ignore pointer events, so overlay will work */
+  position: fixed;
+  z-index: 501; /* above as component/overlay */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  text-align: center;
+}
+
+.modal-wrapper::before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  margin-right: -.28em; /* remove white space next to inline-block element */
+}
+
+.modal {
+  pointer-events: auto; /* re-enable pointer events */
+  display: inline-block;
+  vertical-align: middle;
+  text-align: left;
+}

@@ -1,0 +1,21 @@
+{
+  "name": "mouseleave",
+  "version": "0.0.2",
+  "description": "mouseleave shim utility",
+  "keywords": [
+    "mouse",
+    "mouseleave",
+    "events"
+  ],
+  "author": "stagas",
+  "licence": "MIT",
+  "dependencies": {
+    "stagas/within": "*",
+    "component/event": "*"
+  },
+  "scripts": [
+    "index.js"
+  ],
+  "remotes": [],
+  "repo": "https://raw.github.com/stagas/mouseleave"
+}

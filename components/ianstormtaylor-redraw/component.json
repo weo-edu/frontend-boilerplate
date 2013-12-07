@@ -1,0 +1,14 @@
+{
+  "name": "redraw",
+  "repo": "ianstormtaylor/redraw",
+  "description": "Force a redraw on an element.",
+  "version": "0.0.1",
+  "license": "MIT",
+  "keywords": [
+    "redraw",
+    "repaint"
+  ],
+  "scripts": [
+    "index.js"
+  ]
+}
