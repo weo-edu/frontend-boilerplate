@@ -5,7 +5,8 @@ var path = require('path')
   , fs = require('fs')
   , _ = require('underscore')
   , through = require('through')
-  , syntaxError = require('syntax-error');
+  , syntaxError = require('syntax-error')
+  , falafel = require('falafel');
 
 module.exports = function (grunt) {
   // show elapsed time at the end
@@ -30,8 +31,51 @@ module.exports = function (grunt) {
     watchify: {
       options: {
         debug: true,
-         transform: [
+        transform: [
           function(file) {
+            if (!/\.js$/.test(file)) return through();
+            var data = '';
+
+            var tr = through(write, end);
+            return tr;
+
+            function write (buf) { data += buf; }
+            function end () {
+              var output;
+              try { output = parse(); }
+              catch (err) {
+                this.emit('error', new Error(
+                  err.toString().replace('Error: ', '') + ' (' + file + ')')
+                );
+              }
+
+              finish(output);
+            }
+
+            function finish (output) {
+              tr.queue(String(output));
+              tr.queue(null);
+            }
+
+            function parse () {
+              var output = data;
+              output = falafel(data, function (node) {
+                var callee = node.parent && node.parent.callee;
+                if(callee && callee.type === 'Identifier' && callee.name === 'require'
+                  && node.type === 'Literal') {
+                  if(node.value.indexOf('lib/') === 0) {
+                    var newPath = path.join(path.relative(path.dirname(file), process.cwd()), 
+                      node.value);
+                    node.update('"' + newPath + '"');
+                  }
+                }
+              });
+              return output;
+            }
+          },
+
+          function(file) {
+            console.log('file', file);
             if(grunt.util._.last(file.split('.')) === 'js') {
               var err = syntaxError(fs.readFileSync(file), file);
               if(err) {
@@ -53,6 +97,7 @@ module.exports = function (grunt) {
           },
           function(file) {
             var output = '';
+            console.log('html', file);
             if(grunt.util._.last(file.split('.')) !== 'html')
               return through();
 
@@ -63,6 +108,7 @@ module.exports = function (grunt) {
               this.queue(null);
             });
           },
+          'decomponentify',
           'debowerify'
         ],
         postBundleCB: function(err, src, cb) {
@@ -106,11 +152,19 @@ module.exports = function (grunt) {
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       }
     },
+    shell: {
+      component: {
+        command: 'component build -o public/components -n index --dev'
+      }
+    },
     watch: {
       options: {
         nospawn: true,
-        livereload: reloadPort,
-        debounceDelay: 10000
+        livereload: reloadPort
+      },
+      component: {
+        files: ['components/**/*', 'components/*'],
+        tasks: ['shell:component']
       },
       packageJsons: {
         files: ['**/package.json', '!**/node_modules/**/*', 
@@ -120,7 +174,6 @@ module.exports = function (grunt) {
       js: {
         files: ['public/build.js'],
         options: {
-          debounceDelay: 10000,
           livereload: reloadPort
         }
       },

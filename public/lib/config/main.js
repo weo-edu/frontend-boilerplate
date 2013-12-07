@@ -8,4 +8,3 @@ _.each(modes, function(mode) {
 });
 
 module.exports = config;
-

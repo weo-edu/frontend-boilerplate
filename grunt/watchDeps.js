@@ -13,7 +13,6 @@ module.exports = function(grunt) {
     function refreshConfig(cb) {
       cb = cb && grunt.util._.after(self.filesSrc.length, cb);
       self.filesSrc.forEach(function(file) {
-        console.log('file', file);
         getServerFiles(file, function(files) {
           deps = files;
           grunt.config.set('watch.' + name, grunt.util._.defaults({
@@ -42,12 +41,10 @@ module.exports = function(grunt) {
     , _ = require('underscore');
 
   function getServerDepStream(boot) {
-    console.log('boot', boot);
     return moduleDeps(boot, {
       resolve: function(id, parent, cb) {
         if (id[0] !== '.' && id[0] !== '/') {
           if(id.indexOf('bower') === -1) {
-            console.log('attempting to resolve', id, parent);
             var file = require.resolve(id);
             if(file.indexOf('node_modules/lib/') !== -1 
               && builtinLibs.indexOf(file) === -1
