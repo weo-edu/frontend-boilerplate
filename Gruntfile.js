@@ -75,7 +75,6 @@ module.exports = function (grunt) {
           },
 
           function(file) {
-            console.log('file', file);
             if(grunt.util._.last(file.split('.')) === 'js') {
               var err = syntaxError(fs.readFileSync(file), file);
               if(err) {
@@ -97,7 +96,6 @@ module.exports = function (grunt) {
           },
           function(file) {
             var output = '';
-            console.log('html', file);
             if(grunt.util._.last(file.split('.')) !== 'html')
               return through();
 
@@ -167,8 +165,7 @@ module.exports = function (grunt) {
         tasks: ['shell:component']
       },
       packageJsons: {
-        files: ['**/package.json', '!**/node_modules/**/*', 
-          '!node_modules/**/*', '!grunt/**/*'],
+        files: ['lib/**/package.json'],
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       },
       js: {
@@ -189,9 +186,9 @@ module.exports = function (grunt) {
       },
       images: {
         files: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico'],
-          options: {
-            livereload: reloadPort
-          }
+        options: {
+          livereload: reloadPort
+        }
       },
       jade: {
         files: ['lib/**/*.jade'],

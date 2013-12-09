@@ -1,18 +1,9 @@
-// var component = require('../../public/components');///index.js')
-//   __require = require;
-
-// window.require = function(path) {
-//   if(path.indexOf('component/') === 0)
-//     return component(path.slice('component/'.length));
-//   return __require(path);
-// };
-
 require('jquery');
 require('angular');
 require('lib/main');
-var _ = require('underscore');
 
-var _component = require('../../public/components')
+var _ = require('underscore')
+  , _component = require('../../public/components')
   , modules = {};
 
 _.each(_component.modules, function(module, name) {
