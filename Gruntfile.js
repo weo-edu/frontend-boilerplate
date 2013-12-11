@@ -1,14 +1,9 @@
 'use strict';
 
-var path = require('path')
-  , jshint = require('jshint')
-  , fs = require('fs')
-  , _ = require('underscore')
-  , through = require('through')
-  , syntaxError = require('syntax-error')
-  , falafel = require('falafel');
-
 module.exports = function (grunt) {
+  var path = require('path')
+    , reloadPort = 35729;
+
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks
@@ -17,12 +12,21 @@ module.exports = function (grunt) {
   grunt.loadTasks('grunt/');
   require('./grunt/grunt-watchify/tasks/watchify.js')(grunt);
 
-  var reloadPort = 35729
-    , errors = []
-    , errFile = 'lib/error/err.msg';
-
+  grunt.task.run('registerTests:./lib/');
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    // Testing tasks
+    protractor: {
+      options: {
+      }
+    },
+    jasmine: {
+      options: {
+        helpers: ['spec/*Helpers.js']
+      },
+      main: {}
+    },
+    // Build-related tasks
     develop: {
       server: {
         file: 'app.js'
@@ -32,88 +36,13 @@ module.exports = function (grunt) {
       options: {
         debug: true,
         transform: [
-          function(file) {
-            if (!/\.js$/.test(file)) return through();
-            var data = '';
-
-            var tr = through(write, end);
-            return tr;
-
-            function write (buf) { data += buf; }
-            function end () {
-              var output;
-              try { output = parse(); }
-              catch (err) {
-                this.emit('error', new Error(
-                  err.toString().replace('Error: ', '') + ' (' + file + ')')
-                );
-              }
-
-              finish(output);
-            }
-
-            function finish (output) {
-              tr.queue(String(output));
-              tr.queue(null);
-            }
-
-            function parse () {
-              var output = data;
-              output = falafel(data, function (node) {
-                var callee = node.parent && node.parent.callee;
-                if(callee && callee.type === 'Identifier' && callee.name === 'require'
-                  && node.type === 'Literal') {
-                  if(node.value.indexOf('lib/') === 0) {
-                    var newPath = path.join(path.relative(path.dirname(file), process.cwd()), 
-                      node.value);
-                    node.update('"' + newPath + '"');
-                  }
-                }
-              });
-              return output;
-            }
-          },
-
-          function(file) {
-            if(grunt.util._.last(file.split('.')) === 'js') {
-              var err = syntaxError(fs.readFileSync(file), file);
-              if(err) {
-                if(! _.contains(errors, file))
-                  errors.push(file);
-
-                fs.writeFileSync(errFile, err);
-                return through(function() {
-
-                }, function() {
-                  this.queue('');
-                  this.queue(null);
-                });
-              }
-            }
-
-            errors = _.without(errors, file);
-            return through();
-          },
-          function(file) {
-            var output = '';
-            if(grunt.util._.last(file.split('.')) !== 'html')
-              return through();
-
-            return through(function(buf) {
-              output += buf;
-            }, function() {
-              this.queue('module.exports = decodeURI("' + encodeURI(output) + '");');
-              this.queue(null);
-            });
-          },
+          require('./grunt/browserify-transforms/dereqify.js'),
+          require('./grunt/browserify-transforms/deerrorify.js').transform,
+          require('./grunt/browserify-transforms/dehtmlify.js'),
           'decomponentify',
           'debowerify'
         ],
-        postBundleCB: function(err, src, cb) {
-          if(errors.length === 0 && fs.existsSync(errFile))
-            fs.unlinkSync(errFile);
-          cb && cb(err, src);
-        }
+        postBundleCB: require('./grunt/browserify-transforms/deerrorify.js').postBundleCb
       },
       app: {
         src: './lib/boot/main.js',
