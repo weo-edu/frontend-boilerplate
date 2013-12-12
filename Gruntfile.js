@@ -1,11 +1,7 @@
 'use strict';
 
-
 // TODO: does copying lib remove old lib in public?
 module.exports = function (grunt) {
-  var path = require('path')
-    , reloadPort = 35729;
-
   // show elapsed time at the end
   require('time-grunt')(grunt);
   // load all grunt tasks
@@ -18,6 +14,7 @@ module.exports = function (grunt) {
 
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
+    reloadPort: 35729,
     // Testing tasks
     protractor: {
       options: {}
@@ -78,15 +75,15 @@ module.exports = function (grunt) {
     },
     symlink: {
       lib: {
-        dest: path.join('node_modules', 'lib'),
-        relativeSrc: path.join('..', 'lib'),
+        dest: 'node_modules/lib',
+        relativeSrc: '../lib',
         options: {type: 'dir'}
       }
     },
     watchDeps: {
       server: {
         files: [{src: __dirname + '/app.js'}], 
-        tasks: ['develop', 'delayed-livereload:' + reloadPort]
+        tasks: ['develop', 'delayed-livereload:<%= reloadPort %>']
       }
     },
     shell: {
@@ -104,7 +101,7 @@ module.exports = function (grunt) {
     watch: {
       options: {
         nospawn: true,
-        livereload: reloadPort
+        livereload: '<%= reloadPort %>'
       },
       component: {
         files: ['components/**/*', 'components/*'],
@@ -112,36 +109,16 @@ module.exports = function (grunt) {
       },
       packageJsons: {
         files: ['lib/**/package.json'],
-        tasks: ['develop', 'delayed-livereload:' + reloadPort]
-      },
-      js: {
-        files: ['<%= browserify.dist.dest %>'],
-        options: {
-          livereload: reloadPort
-        }
+        tasks: ['develop', 'delayed-livereload:<%= reloadPort %>']
       },
       sass: {
         files: ['lib/**/*.scss'],
         tasks: ['genCssImports', 'sass']
       },
-      css: {
-        files: ['public/build.css'],
-        options: {
-          livereload: reloadPort
-        }
-      },
-      images: {
-        files: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico'],
-        options: {
-          livereload: reloadPort
-        }
-      },
-      jade: {
-        files: ['lib/**/*.jade'],
-        options: {
-          livereload: reloadPort
-        }
-      }
+      js: ['<%= browserify.dist.dest %>'],
+      css: ['public/build.css'],
+      images: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico'],
+      jade: ['lib/**/*.jade']
     },
     uglify: {
       options: {
