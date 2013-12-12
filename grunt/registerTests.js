@@ -20,7 +20,16 @@ module.exports = function(grunt) {
         dest: path.join(specDir, 'build.js')
       });
 
+      grunt.config.set('browserify.' + module + '-test', {
+        src: path.join(specDir, 'spec.js'),
+        dest: path.join(specDir, 'build.js')
+      });
+
       grunt.config.set('unit.' + module, {
+        module: module
+      });
+
+      grunt.config.set('unit-dev.' + module, {
         module: module
       });
 
@@ -46,7 +55,13 @@ module.exports = function(grunt) {
 
   grunt.registerMultiTask('unit', function() {
     var module = this.data.module;
-    grunt.task.run(['genSpec:' + module, 'watchify:' + module + '-test',
+    grunt.task.run(['symlink', 'genSpec:' + module, 'browserify:' + module + '-test',
+      'jasmine:' + module]);
+  });
+
+  grunt.registerMultiTask('unit-dev', function() {
+    var module = this.data.module;
+    grunt.task.run(['symlink', 'genSpec:' + module, 'watchify:' + module + '-test',
       'jasmine:' + module, 'watch:' + module + '-test']);
   });
 };

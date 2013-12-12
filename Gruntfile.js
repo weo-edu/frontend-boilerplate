@@ -16,22 +16,7 @@ module.exports = function (grunt) {
 
   grunt.task.run('registerTests:./lib/');
 
-  var browserify = {
-    transforms: [
-      require('./grunt/browserify-transforms/dereqify.js'),
-      require('./grunt/browserify-transforms/deerrorify.js').transform,
-      require('./grunt/browserify-transforms/dehtmlify.js'),
-      'decomponentify',
-      'debowerify'
-    ],
-    in: './lib/boot/main.js',
-    out: './public/build.js',
-    postBundle: require('./grunt/browserify-transforms/deerrorify.js').postBundleCb
-  };
-  browserify.files = {}
-  browserify.files[browserify.out] = browserify.in;
-
-  var config = {
+  grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     // Testing tasks
     protractor: {
@@ -45,23 +30,30 @@ module.exports = function (grunt) {
       }
     },
     browserify: {
+      options: {
+        transform: [
+          require('./grunt/browserify-transforms/dereqify.js'),
+          require('./grunt/browserify-transforms/deerrorify.js').transform,
+          require('./grunt/browserify-transforms/dehtmlify.js'),
+          'decomponentify',
+          'debowerify'
+        ],
+        postBundle: require('./grunt/browserify-transforms/deerrorify.js').postBundleCb
+      },
       dist: {
-        files: browserify.files,
-        options: {
-          transform: browserify.transforms,
-          postBundleCB: browserify.postBundle
-        }
+        src: './lib/boot/main.js',
+        dest: './public/build.js'
       }
     },
     watchify: {
       options: {
         debug: true,
-        transform: browserify.transforms,
-        postBundleCB: browserify.postBundle
+        transform: '<%= browserify.options.transform %>',
+        postBundleCB: '<%= browserify.options.postBundleCB %>'
       },
       app: {
-        src: browserify.in,
-        dest: browserify.out
+        src: '<%= browserify.dist.src %>',
+        dest: '<%= browserify.dist.dest %>'
       }
     },
     sass: {
@@ -97,19 +89,17 @@ module.exports = function (grunt) {
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       }
     },
-    componentBuildCommand: 'component build -o public/components -n index',
     shell: {
       options: {
         stdout: true,
         stderr: true
       },
       "component": {
-        command: '<%= componentBuildCommand %>'
+        command: 'component build -o public/components -n index'
       },
       "component-dev": {
-        command: '<%= componentBuildCommand %> --dev'
+        command: '<%= shell.component.command %> --dev'
       },
-      
     },
     watch: {
       options: {
@@ -125,7 +115,7 @@ module.exports = function (grunt) {
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       },
       js: {
-        files: [browserify.out],
+        files: ['<%= browserify.dist.dest %>'],
         options: {
           livereload: reloadPort
         }
@@ -169,20 +159,17 @@ module.exports = function (grunt) {
         dest: './public/build.css'
       }
     }
-  };
-
-  grunt.initConfig(config);
-
+  });
 
   // development task
-  grunt.registerTask('default', ['dev-build', 'watchify', 
+  grunt.registerTask('default', ['dev-build', 'watchify:app', 
     'develop', 'watchDeps', 'watch']);
 
   // dev build
-  var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports', 'sass'];
-  grunt.registerTask('dev-build', buildTasks);
+  var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports',  'sass'];
+  grunt.registerTask('dev-build', buildTasks.concat('shell:component-dev'));
 
   // production build
-  var prodBuildTasks = buildTasks.concat(['symlink', 'shell:component', 'browserify', 'uglify', 'cssmin']);
+  var prodBuildTasks = buildTasks.concat(['shell:component', 'browserify', 'uglify', 'cssmin']);
   grunt.registerTask('build', prodBuildTasks);
 };
