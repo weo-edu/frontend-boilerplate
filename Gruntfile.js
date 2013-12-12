@@ -17,15 +17,9 @@ module.exports = function (grunt) {
     pkg: grunt.file.readJSON('package.json'),
     // Testing tasks
     protractor: {
-      options: {
-      }
+      options: {}
     },
-    jasmine: {
-      options: {
-        helpers: ['spec/*Helpers.js']
-      },
-      main: {}
-    },
+    jasmine: {},
     // Build-related tasks
     develop: {
       server: {
@@ -59,6 +53,9 @@ module.exports = function (grunt) {
           'public/build.css': 'public/.imports.scss'
         }
       }
+    },
+    clean: {
+      build: ['public/*']
     },
     copy: {
       lib: {
@@ -128,7 +125,8 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('default', ['symlink', 'build', 'watchify', 
+  grunt.registerTask('default', ['build', 'watchify', 
     'develop', 'watchDeps', 'watch']);
-  grunt.registerTask('build', ['copy', 'genCssImports', 'sass']);
+  grunt.registerTask('build', ['symlink', 'clean:build', 'copy:lib', 
+    'genCssImports', 'sass']);
 };

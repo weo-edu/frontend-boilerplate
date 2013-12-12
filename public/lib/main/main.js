@@ -9,6 +9,3 @@ angular.module('app', [])
     }
   };
 });
-
-require('source-map-support').install();
-throw new Error('testing');

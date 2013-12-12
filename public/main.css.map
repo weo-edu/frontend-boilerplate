@@ -1,6 +1,0 @@
-{
-"version": 3,
-"mappings": "AAAA,MAAO;EACL,MAAM,EAAE,CAAC;EACT,OAAO,EAAE,CAAC;EACV,UAAU,EAAE,IAAI;;AAGlB,MAAO;EACL,OAAO,EAAE,YAAY;;AAGvB,KAAM;EACJ,OAAO,EAAE,KAAK;EACd,OAAO,EAAE,QAAQ;EACjB,eAAe,EAAE,IAAI;;ACbvB,YAAa;EACX,OAAO,EAAE,KAAK;EACd,OAAO,EAAE,QAAQ;EACjB,eAAe,EAAE,IAAI",
-"sources": ["../lib/test/main.scss","../lib/test/other.scss"],
-"file": "main.css"
-}
