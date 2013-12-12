@@ -1,5 +1,7 @@
 'use strict';
 
+
+// TODO: does copying lib remove old lib in public?
 module.exports = function (grunt) {
   var path = require('path')
     , reloadPort = 35729;
@@ -13,7 +15,23 @@ module.exports = function (grunt) {
   require('./grunt/grunt-watchify/tasks/watchify.js')(grunt);
 
   grunt.task.run('registerTests:./lib/');
-  grunt.initConfig({
+
+  var browserify = {
+    transforms: [
+      require('./grunt/browserify-transforms/dereqify.js'),
+      require('./grunt/browserify-transforms/deerrorify.js').transform,
+      require('./grunt/browserify-transforms/dehtmlify.js'),
+      'decomponentify',
+      'debowerify'
+    ],
+    in: './lib/boot/main.js',
+    out: './public/build.js',
+    postBundle: require('./grunt/browserify-transforms/deerrorify.js').postBundleCb
+  };
+  browserify.files = {}
+  browserify.files[browserify.out] = browserify.in;
+
+  var config = {
     pkg: grunt.file.readJSON('package.json'),
     // Testing tasks
     protractor: {
@@ -26,21 +44,24 @@ module.exports = function (grunt) {
         file: 'app.js'
       }
     },
+    browserify: {
+      dist: {
+        files: browserify.files,
+        options: {
+          transform: browserify.transforms,
+          postBundleCB: browserify.postBundle
+        }
+      }
+    },
     watchify: {
       options: {
         debug: true,
-        transform: [
-          require('./grunt/browserify-transforms/dereqify.js'),
-          require('./grunt/browserify-transforms/deerrorify.js').transform,
-          require('./grunt/browserify-transforms/dehtmlify.js'),
-          'decomponentify',
-          'debowerify'
-        ],
-        postBundleCB: require('./grunt/browserify-transforms/deerrorify.js').postBundleCb
+        transform: browserify.transforms,
+        postBundleCB: browserify.postBundle
       },
       app: {
-        src: './lib/boot/main.js',
-        dest: './public/build.js'
+        src: browserify.in,
+        dest: browserify.out
       }
     },
     sass: {
@@ -76,10 +97,19 @@ module.exports = function (grunt) {
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       }
     },
+    componentBuildCommand: 'component build -o public/components -n index',
     shell: {
-      component: {
-        command: 'component build -o public/components -n index --dev'
-      }
+      options: {
+        stdout: true,
+        stderr: true
+      },
+      "component": {
+        command: '<%= componentBuildCommand %>'
+      },
+      "component-dev": {
+        command: '<%= componentBuildCommand %> --dev'
+      },
+      
     },
     watch: {
       options: {
@@ -88,14 +118,14 @@ module.exports = function (grunt) {
       },
       component: {
         files: ['components/**/*', 'components/*'],
-        tasks: ['shell:component']
+        tasks: ['shell:component-dev']
       },
       packageJsons: {
         files: ['lib/**/package.json'],
         tasks: ['develop', 'delayed-livereload:' + reloadPort]
       },
       js: {
-        files: ['public/build.js'],
+        files: [browserify.out],
         options: {
           livereload: reloadPort
         }
@@ -122,11 +152,37 @@ module.exports = function (grunt) {
           livereload: reloadPort
         }
       }
+    },
+    uglify: {
+      options: {
+        compress: true
+      },
+      dist: {
+        files: {
+          './public/build.js': './public/build.js'
+        }
+      }
+    },
+    cssmin: {
+      minify: {
+        src: './public/build.css',
+        dest: './public/build.css'
+      }
     }
-  });
+  };
 
-  grunt.registerTask('default', ['build', 'watchify', 
+  grunt.initConfig(config);
+
+
+  // development task
+  grunt.registerTask('default', ['dev-build', 'watchify', 
     'develop', 'watchDeps', 'watch']);
-  grunt.registerTask('build', ['symlink', 'clean:build', 'copy:lib', 
-    'genCssImports', 'sass']);
+
+  // dev build
+  var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports', 'sass'];
+  grunt.registerTask('dev-build', buildTasks);
+
+  // production build
+  var prodBuildTasks = buildTasks.concat(['symlink', 'shell:component', 'browserify', 'uglify', 'cssmin']);
+  grunt.registerTask('build', prodBuildTasks);
 };
