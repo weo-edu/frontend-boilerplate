@@ -59,9 +59,8 @@ module.exports = function (grunt) {
         sourcemap: true
       },
       lib: {
-        files: {
-          'public/build.css': 'public/.imports.scss'
-        }
+        src: 'public/.imports.scss',
+        dest: 'public/build.css'
       }
     },
     clean: {
@@ -115,38 +114,40 @@ module.exports = function (grunt) {
         files: ['lib/**/*.scss'],
         tasks: ['genCssImports', 'sass']
       },
-      js: ['<%= browserify.dist.dest %>'],
-      css: ['public/build.css'],
-      images: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico'],
-      jade: ['lib/**/*.jade']
+      js: {files: ['<%= browserify.dist.dest %>']},
+      css: {files: ['<%= sass.lib.dest %>']},
+      images: {files: ['lib/**/*.(gif|png|jpg|jpeg|tiff|bmp|ico']},
+      jade: {files: ['lib/**/*.jade']}
     },
     uglify: {
       options: {
         compress: true
       },
       dist: {
-        files: {
-          './public/build.js': './public/build.js'
-        }
+        src: '<%= browserify.dist.dest %>',
+        dest: '<%= browserify.dist.dest %>'
       }
     },
     cssmin: {
       minify: {
-        src: './public/build.css',
-        dest: './public/build.css'
+        src: '<%= sass.lib.dest %>',
+        dest: '<%= sass.lib.dest %>'
       }
     }
   });
 
   // development task
+  grunt.registerTask('watch-dev', ['watch:component', 'watch:packageJsons', 
+    'watch:sass', 'watch:js', 'watch:css', 'watch:images', 'watch:jade']);
   grunt.registerTask('default', ['dev-build', 'watchify:app', 
-    'develop', 'watchDeps', 'watch']);
+    'develop', 'watchDeps', 'watch-dev']);
 
   // dev build
   var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports',  'sass'];
   grunt.registerTask('dev-build', buildTasks.concat('shell:component-dev'));
 
   // production build
-  var prodBuildTasks = buildTasks.concat(['shell:component', 'browserify', 'uglify', 'cssmin']);
+  var prodBuildTasks = buildTasks.concat(['shell:component', 'browserify', 
+    'uglify', 'cssmin']);
   grunt.registerTask('build', prodBuildTasks);
 };
