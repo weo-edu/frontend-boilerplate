@@ -1,1 +1,1 @@
-web:grunt build; node app.js
+web: grunt build; node app.js
