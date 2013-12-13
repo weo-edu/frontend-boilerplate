@@ -104,8 +104,8 @@ module.exports = function (grunt) {
         command: '<%= shell.component.command %> --dev'
       },
       deploy: {
-        command: ['git checkout deploy', 'git merge master', 'cp gitignore public/.gitignore', 
-          'grunt build', 'git add .', 'git commit -am "deploy"', 'git push heroku master; git checkout master'].join('&&')
+        command: ['git checkout deploy', 'git merge master', 'mv .gitignore gitignore', 
+          'grunt build', 'git add .', 'git commit -am "deploy"', 'git push heroku master; mv gitignore .gitignore; git commit -am "post-deploy"; git checkout master'].join('&&')
       }
     },
     watch: {

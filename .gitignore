@@ -1,5 +1,1 @@
-build.js
-public/components
-public/lib
-public/build*
-public/.imports.scss
+!**/*
