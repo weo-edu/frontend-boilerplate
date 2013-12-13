@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "preinstall": "PATH='$HOME/.gem/ruby/1.9.1/bin:$PATH'; gem install sass; npm install grunt-cli -g",
+    "preinstall": "gem install sass; npm install grunt-cli -g",
     "start": "node app"
   },
   "dependencies": {
