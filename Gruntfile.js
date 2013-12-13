@@ -54,13 +54,20 @@ module.exports = function (grunt) {
       }
     },
     sass: {
-      options: {
-        compass: true,
-        sourcemap: true
-      },
-      lib: {
+      libDev: {
+        options: {
+          compass: true,
+          sourcemap: true
+        },
         src: 'public/.imports.scss',
         dest: 'public/build.css'
+      },
+      lib: {
+        options: {
+          compass: true
+        },
+        src: '<%= sass.libDev.src %>',
+        dest: '<%+ sass.libDev.dest %>'
       }
     },
     clean: {
@@ -143,11 +150,11 @@ module.exports = function (grunt) {
     'develop', 'watchDeps', 'watch-dev']);
 
   // dev build
-  var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports',  'sass'];
-  grunt.registerTask('dev-build', buildTasks.concat('shell:component-dev'));
+  var buildTasks = ['symlink', 'clean:build', 'copy:lib', 'genCssImports'];
+  grunt.registerTask('dev-build', buildTasks.concat('shell:component-dev', 'sass:libDev'));
 
   // production build
-  var prodBuildTasks = buildTasks.concat(['shell:component', 'browserify', 
+  var prodBuildTasks = buildTasks.concat(['sass:lib', 'shell:component', 'browserify', 
     'uglify', 'cssmin']);
   grunt.registerTask('build', prodBuildTasks);
 };
