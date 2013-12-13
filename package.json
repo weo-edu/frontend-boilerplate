@@ -2,8 +2,8 @@
   "name": "frontend",
   "version": "0.0.1",
   "private": true,
-  "preinstall": "npm install grunt-cli -g",
   "scripts": {
+    "preinstall": "npm install grunt-cli -g",
     "start": "node app"
   },
   "dependencies": {
@@ -22,7 +22,8 @@
     "grunt-contrib-clean": "~0.5.0",
     "grunt-browserify": "~1.2.12",
     "grunt-contrib-uglify": "~0.2.7",
-    "grunt-contrib-cssmin": "~0.7.0"
+    "grunt-contrib-cssmin": "~0.7.0",
+    "grunt-cli": "~0.1.11"
   },
   "devDependencies": {
     "grunt": "~0.4.1",
