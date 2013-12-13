@@ -105,7 +105,7 @@ module.exports = function (grunt) {
       },
       deploy: {
         command: ['git checkout deploy', 'git merge master', 'mv .gitignore gitignore', 
-          'grunt build', 'git add .', 'git commit -am "deploy"', 'git push heroku master; mv gitignore .gitignore; git commit -am "post-deploy"; git checkout master'].join('&&')
+          'grunt build', 'git add -A', 'git commit -am "deploy"', 'git push heroku deploy:master; mv gitignore .gitignore; git add -A; git commit -am "post-deploy"; git checkout master'].join('&&')
       }
     },
     watch: {
