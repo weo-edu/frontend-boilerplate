@@ -1,2 +1,5 @@
 build.js
-public/*
+public/components
+public/lib
+public/build*
+public/.imports.scss
