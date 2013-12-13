@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.0.1",
   "private": true,
+  "preinstall": "npm install grunt-cli -g",
   "scripts": {
     "start": "node app"
   },
