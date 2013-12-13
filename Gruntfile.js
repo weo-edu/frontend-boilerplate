@@ -67,7 +67,7 @@ module.exports = function (grunt) {
           compass: true
         },
         src: '<%= sass.libDev.src %>',
-        dest: '<%+ sass.libDev.dest %>'
+        dest: '<%= sass.libDev.dest %>'
       }
     },
     clean: {
@@ -119,7 +119,7 @@ module.exports = function (grunt) {
       },
       sass: {
         files: ['lib/**/*.scss'],
-        tasks: ['genCssImports', 'sass']
+        tasks: ['genCssImports', 'sass:libDev']
       },
       js: {files: ['<%= browserify.dist.dest %>']},
       css: {files: ['<%= sass.lib.dest %>']},
