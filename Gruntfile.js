@@ -1,5 +1,5 @@
 'use strict';
-////
+
 // TODO: does copying lib remove old lib in public?
 module.exports = function (grunt) {
   // show elapsed time at the end
